@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# function usage
+function usage() {
+    echo -e "\e[0musage: awake_for \e[4m[-h|--help]\e[0m \e[4m[-s|--suspend]\e[0m \e[4m[-a|--additional-time] ADDITIONAL_TIME\e[0m [-p|--program] \"PROGRAM\" [-d|--duration] DURATION"
+    exit 1
+}
+
+# deal with options
+additional_time=0
+suspend_machine=false
+program=""
+while [ -n "$1" ]; do
+    case "$1" in
+        "-h"|"--help")
+            usage
+            ;;
+        "-p"|"--program")
+            # check if the flags have argument
+            if [ -z $2 ]; then
+                echo "program flag have no argument!"
+                usage
+            fi
+            # set program
+            program=$2
+            if [ "$(ps -aux | grep $program | wc -l)" -le 3 ]; then
+                echo "program $program is not running, please make sure your program is working properly!"
+                usage
+            fi
+            shift 2
+            ;;
+        "-s"|"--suspend")
+            suspend_machine=true
+            shift
+            ;;
+        "-a"|"--additional-time")
+            # check if the flags have argument
+            if [ -z $2 ]; then
+                echo "additional_time flag have no argument!"
+                usage
+            fi
+            # set additional_time variable
+            if [[ "$(echo $2|grep -E "[0-9]+%")" ]]; then
+                additional_time=$(echo "$2"|grep -Eo "[+-]?[0-9]+%"|rev|cut -c2-|rev)
+            elif [[ "$(echo $2|grep -E "[0-1]\.[0-9]+")" ]]; then
+                additional_time=$(echo $2|grep -E "[+-]?[0-1]\.[0-9]+")
+            else
+                echo "wrong additional_time format, please retry!"
+                usage
+            fi
+            shift 2
+            ;;
+        "-d"|"--duration")
+            # check if the flags have argument
+            if [ -z $2 ]; then
+                echo "duration flag have no argument!"
+                usage
+            fi
+            # get flags
+            h=$(echo "$2"|grep -Eo "[0-9]*h"|rev|cut -c2-|rev)
+            if [ -z $h ]; then h=0; fi
+            m=$(echo "$2"|grep -Eo "[0-9]*m"|rev|cut -c2-|rev)
+            if [ -z $m ]; then m=0; fi
+            s=$(echo "$2"|grep -Eo "[0-9]*s"|rev|cut -c2-|rev)
+            if [ -z $m ]; then s=0; fi
+            # set parameters
+            hours=$(($h*60*60))
+            minutes=$(($m*60))
+            seconds=$(($s))
+            total_s=$(($hours + $minutes + $seconds))
+            shift 2
+            ;;
+        *)
+            echo "I can't understand what you want, please retry."
+            usage
+            ;;
+    esac
+done
+
+# check if necessary flags are set
+if [[ -z "$total_s" ]]; then
+    echo "you have not set the duration flag!"
+    usage
+fi
+if [[ -z "$program" ]]; then
+    echo "you have not set the program flag!"
+    usage
+fi
+
+# find obs process
+id_process=$(ps -eo pid,command | grep $program | head -n 1 | grep -E "[0-9]+" -o)
+
+echo "Timer succesfully launch for $total_s second(s)..."
+echo "After that, process $id_process ($program) will be killed."
+if $suspend_machine; then
+    echo "The machine will suspend when the job finished."
+fi
+
+# kill obs process after recording finish
+sleep $total_s && kill $id_process ;
+sleep 10;
+
+# suspend machine if ask by user
+if $suspend_machine; then
+    systemctl suspend
+fi
+
+
