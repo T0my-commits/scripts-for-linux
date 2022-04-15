@@ -98,7 +98,7 @@ if $suspend_machine; then
     echo "The machine will suspend when the job finished."
 fi
 
-# kill obs process after recording finish
+# kill process
 sleep $total_s && kill $id_process ;
 sleep 10;
 
