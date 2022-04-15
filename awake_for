@@ -14,6 +14,8 @@ while [ -n "$1" ]; do
     case "$1" in
         "-h"|"--help")
             usage
+            echo "Exemple of usage:"
+            echo -e "\tawake_for -d 1h20m04s -p \"/usr/bin/myprocess\" -s   # this will be kill the process /usr/bin/myprocess after 1h 20m and 10s and will suspend the machine after that"
             ;;
         "-p"|"--program")
             # check if the flags have argument
@@ -87,7 +89,7 @@ if [[ -z "$program" ]]; then
     usage
 fi
 
-# find obs process
+# find process
 id_process=$(ps -eo pid,command | grep $program | head -n 1 | grep -E "[0-9]+" -o)
 
 echo "Timer succesfully launch for $total_s second(s)..."
