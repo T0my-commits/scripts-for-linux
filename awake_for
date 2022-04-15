@@ -13,9 +13,11 @@ program=""
 while [ -n "$1" ]; do
     case "$1" in
         "-h"|"--help")
-            usage
-            echo "Exemple of usage:"
-            echo -e "\tawake_for -d 1h20m04s -p \"/usr/bin/myprocess\" -s   # this will be kill the process /usr/bin/myprocess after 1h 20m and 10s and will suspend the machine after that"
+            echo -e "\e[0musage: awake_for \e[4m[-h|--help]\e[0m \e[4m[-s|--suspend]\e[0m \e[4m[-a|--additional-time] ADDITIONAL_TIME\e[0m [-p|--program] \"PROGRAM\" [-d|--duration] DURATION"
+            echo -e "\nExemple of usage:"
+            echo "# this will be kill the process /usr/bin/myprocess after 1h 20m and 10s and will suspend the machine after that"
+            echo "awake_for -d 1h20m04s -p \"/usr/bin/myprocess\" -s"
+            exit 0
             ;;
         "-p"|"--program")
             # check if the flags have argument
